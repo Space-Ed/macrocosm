@@ -1,5 +1,5 @@
 
-import {macrocosm} from '../src/macrocosm'
+import {macrocosm} from './macrocosm'
 
 
 describe('macrocosm', function(){

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const macrocosm_1 = require("../src/macrocosm");
+const macrocosm_1 = require("./macrocosm");
 describe('macrocosm', function () {
     it('should pass values through with identity function', function () {
         let m = macrocosm_1.macrocosm((macro) => (macro));

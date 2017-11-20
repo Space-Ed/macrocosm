@@ -14,15 +14,13 @@ furthermore we would like to be able to see how a difference in the original dom
 
 import {macrocosm} from 'macrocosm'
 
-let planetarium = macrocosm((macro)=>{
-    return {
-        land: macro.land,
-        size:'big',
-        shape: "round",
-        temperature: macro._derive( (distance, atmosphere)=>{
-            return atmosphere / distance
-        }, macro.distance, macro.atmosphere)
-    }
+let planetarium = macrocosm((macro)=>({
+    land: macro.land,
+    size:'big',
+    shape: "round",
+    temperature: macro._derive( (distance, atmosphere)=>{
+        return atmosphere / distance
+    }, macro.distance, macro.atmosphere)
 })
 
 let technoplanet = planetarium.convert({
@@ -31,33 +29,26 @@ let technoplanet = planetarium.convert({
     atmosphere: 2
 })
 
-// same as
-let technoplanet = {
+expect(technoplanet).toEqual({
     land:'silicon',
     size:'big',
     shape: 'round',
     temperature: 0.2
-} 
+})
 ```
 
 ### What is it doing?
 
-macrocosm works by creating a proxy object with a wack interpretation of get. when you get you are not getting the value but actually informing the system that the value will derive from that 
+macrocosm works by creating a proxy object called a gambit with a wack interpretation of get. when you get you are not getting the value but actually informing the system that the value will derive from that 
 
 in the macrocosm properties gotten are not values but blanks to fill in later. 
 
-### why not just use functions? destructure and reassemble
+### 
 
-That is a reasonable question, and that's ok for most cases, macrocosm has some added benefits such as 
-
-### Granular updates
-
-It is possible to create not just templates but updates to the templates, so that it is possible to only adjust the affected areas of a system when the description changes
+- __Granular updates__: It is possible to create not just templates but updates to the templates, so that it is possible to only adjust the affected areas of a system when the description changes
 
 ```js
 
 
-
 ````
 
-____

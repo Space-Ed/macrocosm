@@ -1,9 +1,9 @@
 
 
-interface SpecialGambit {
-    _derive:(func, ...args)=>SpecialGambit,
-    _req_:SpecialGambit,
-    _sticky_:SpecialGambit,
+export interface GambitProxy {
+    _derive:(func, ...args)=>GambitProxy,
+    _req_:GambitProxy,
+    _sticky_:GambitProxy,
     [others:string]:any
 }
 
@@ -190,7 +190,7 @@ function mint(delta, takecold=false, nullable=false) {
 
 }
 
-export function macrocosm(templater:(macro:SpecialGambit)=>any) {
+export function macrocosm(templater:(macro:GambitProxy)=>any) {
 
     let gambit = new Gambit()
     let template = templater(gambit.proxy)
