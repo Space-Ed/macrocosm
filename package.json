@@ -1,6 +1,6 @@
 {
   "name": "macrocosm",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "a cosmic approach to object templating macros with proxy majik",
   "main": "build/macrocosm.js",
   "repository": "https://github.com/Space-Ed/macrocosm",
