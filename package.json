@@ -1,6 +1,6 @@
 {
   "name": "macrocosm",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "a cosmic approach to object templating macros with proxy majik",
   "main": "dist/macrocosm.js",
   "scripts": {
