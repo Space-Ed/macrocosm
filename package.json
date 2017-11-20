@@ -1,0 +1,25 @@
+{
+  "name": "macrocosm",
+  "version": "0.0.0",
+  "description": "a cosmic approach to object templating macros with proxy majik",
+  "main": "dist/macrocosm.js",
+  "scripts": {
+    "test": "jasmine"
+  },
+  "keywords": [
+    "macro",
+    "object",
+    "template",
+    "macro",
+    "representation",
+    "domain",
+    "jungle",
+    "translation"
+  ],
+  "author": "Space-Ed",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/jasmine": "^2.8.2",
+    "typescript": "^2.6.1"
+  }
+}
