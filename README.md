@@ -1,27 +1,27 @@
 # macrocosm
 
-Template Javascript Objects in a way that allows incremental change between representational domains
+Template Javascript Objects in a way that allows incremental change between representational domains. 
 
-### Example, templating a planet
+## Example Usage: templating a planet
 
-#### Aim: Abstract the similarities between kinds of planet when converting from the planetary description to the cosmic object description
-
-our target domain could contain any number of a variety of cosmic objects, we want to create a few planets using a format using properties relevant to planets only but emit to a format of general 
-
-furthermore we would like to be able to see how a difference in the original domain will cause change in the converted domain.
+our target domain is that of cosmic objects rendered on the canvas of astronomical spacetime, we want to create a few planets using a format that is only concerned with properties relevant to planets, converting to the former. 
 
 ```js
 
 import {macrocosm} from 'macrocosm'
 
-let planetarium = macrocosm((macro)=>({
+let planetarium = macrocosm((macro, derive)=>({
     land: macro.land,
     size:'big',
     shape: "round",
-    temperature: macro._derive( (distance, atmosphere)=>{
-        return atmosphere / distance
-    }, macro.distance, macro.atmosphere)
-})
+    temperature: derive(
+        (distance, atmosphere)=>{
+            return atmosphere / distance // the thinner the atmosphere and further away the colder it gets
+        }, 
+        macro.distance, //depends on
+        macro.atmosphere
+    )
+}))
 
 let technoplanet = planetarium.convert({
     land:"silicon",  
@@ -35,20 +35,43 @@ expect(technoplanet).toEqual({
     shape: 'round',
     temperature: 0.2
 })
+
+
 ```
 
-### What is it doing?
+### Isn't that just executing the function?
 
-macrocosm works by creating a proxy object called a gambit with a wack interpretation of get. when you get you are not getting the value but actually informing the system that the value will derive from that 
+That is what it looks like, but macrocosm abstracts some magic to enable some extra features. 'macro' here is not the object passed to convert.
+## Updates:
 
-in the macrocosm properties gotten are not values but blanks to fill in later. 
-
-### 
-
-- __Granular updates__: It is possible to create not just templates but updates to the templates, so that it is possible to only adjust the affected areas of a system when the description changes
+ It is possible to create updates to existing templates, so that it is possible to only adjust the affected areas of a system when the description changes
 
 ```js
+let up = planetarium.update({
+    land:"Ice",
+    atmosphere:5    
+})
+
+expect(up).toEqual({
+    land:"Ice",
+    temperature:0.5
+})
+
+```
+
+see how the size and shape are unaffected. This makes this tool useful for driving updates to views, which derive from models in this way.
 
 
-````
+## The Magic
 
+internally macrocosm creates a gambit, a proxied object where properties gotten are not values but blanks to fill in later. By trapping get we are able to detect exactly what has been referred to and everything else can be ignored.
+
+## Testing
+
+```
+npm test
+```
+
+ES6 only
+Apache-2.0 Lisence
+Contributions Welcome

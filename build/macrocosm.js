@@ -4,9 +4,8 @@ const gambitAXE = Symbol();
 class Gambit {
     constructor() {
         this.subgambits = {};
-        this.sticky = true;
-        this.required = false;
         this.hot = false;
+        this.frozen = true;
         this[gambitAXE] = this;
         this.proxy = new Proxy(this, {
             get(target, prop) {
@@ -35,21 +34,14 @@ class Gambit {
     _derive() {
         //provide the function that is called to produce the gambit that will depend on those arguments
         return (func, ...args) => {
-            let gambit = new DeriveGambit(func, args);
+            let gambit = new DeriveGambit(func, [this, ...args]);
             return gambit;
         };
-    }
-    _req_() {
-        this.required = true;
-        return this;
-    }
-    _sticky_() {
-        this.sticky = true;
-        return this;
     }
     plug(value) {
         this.value = value;
         this.hot = true;
+        this.frozen = false;
     }
     /**
      * pull the values that have been dropped,
@@ -78,13 +70,12 @@ class Gambit {
      */
     discharge() {
         this.hot = false;
-        if (!this.sticky)
-            this.value = undefined;
         for (let k in this.subgambits) {
             this.subgambits[k].discharge();
         }
     }
 }
+exports.Gambit = Gambit;
 class DeriveGambit extends Gambit {
     constructor(func, args) {
         super();
@@ -102,57 +93,80 @@ class DeriveGambit extends Gambit {
     dump() {
         //collect arguments and apply function to produce value if a required value is missing
         let produced = [];
+        let hot = false;
         for (let value of this.args) {
             if (value instanceof Object && value[gambitAXE]) {
                 let gambit = value[gambitAXE];
-                let d = gambit.dump();
-                if (d === undefined && gambit.required || !gambit.hot) {
-                    return undefined;
+                hot = gambit.hot || hot;
+                if (gambit.frozen) {
+                    return;
                 }
-                else {
-                    produced.push(d);
-                }
+                produced.push(gambit.dump());
             }
             else {
                 produced.push(value);
             }
         }
-        let derived = this.func(...produced);
-        this.plug(derived);
-        return derived;
+        if (hot) {
+            let derived = this.func(...produced);
+            this.plug(derived);
+            return derived;
+        }
     }
 }
-function mint(delta, takecold = false, nullable = false) {
+exports.DeriveGambit = DeriveGambit;
+function extract(delta, takecold) {
     if (delta instanceof Object && delta[gambitAXE]) {
         let gambit = delta[gambitAXE];
-        if (takecold || gambit.hot) {
-            return gambit.dump();
-        }
-        else if (gambit.required) {
-            throw new Error("Gambit was required but was never populated");
-        }
+        let val = gambit.dump();
+        return {
+            value: val,
+            hot: gambit.hot,
+            frozen: gambit.frozen
+        };
     }
     else if (delta instanceof Object) {
-        let product = {};
-        Object.setPrototypeOf(product, Object.getPrototypeOf(delta));
-        for (let k in delta) {
-            let val = mint(delta[k], takecold, nullable);
-            if (val !== undefined || nullable) {
-                product[k] = val;
-            }
-        }
-        return product;
+        return _mint(delta, takecold);
     }
     else {
-        //other values are stale
-        if (takecold) {
-            return delta;
-        }
+        return {
+            value: delta,
+            hot: false,
+            frozen: false
+        };
     }
 }
+function _mint(delta, takecold) {
+    let product = {};
+    Object.setPrototypeOf(product, Object.getPrototypeOf(delta));
+    let hot = false;
+    let frozen = true;
+    for (let k in delta) {
+        let val = extract(delta[k], takecold);
+        hot = val.hot || hot;
+        frozen = val.frozen && frozen;
+        if (!val.frozen && (val.hot || takecold)) {
+            product[k] = val.value;
+        }
+    }
+    return {
+        value: product,
+        hot: hot,
+        frozen: frozen
+    };
+}
+function mint(delta, takecold = false) {
+    return extract(delta, takecold).value;
+}
+function derive(func, ...args) {
+    //provide the function that is called to produce the gambit that will depend on those arguments
+    let gambit = new DeriveGambit(func, [...args]);
+    return gambit;
+}
+exports.derive = derive;
 function macrocosm(templater) {
     let gambit = new Gambit();
-    let template = templater(gambit.proxy);
+    let template = templater(gambit.proxy, derive);
     return {
         convert(whole) {
             gambit.charge(whole);

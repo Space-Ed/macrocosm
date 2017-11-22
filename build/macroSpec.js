@@ -41,7 +41,7 @@ describe('macrocosm', function () {
     });
     it('can create computed values', function () {
         let m = macrocosm_1.macrocosm(_ => ({
-            computed: _._derive((a, b) => { return a + b; }, _.a, _.b)
+            computed: _._derive((o, a, b) => { return a + b; }, _.a, _.b)
         }));
         expect(m.convert({
             a: 1, b: 1
@@ -50,16 +50,23 @@ describe('macrocosm', function () {
         });
     });
     it('should perform partial update', function () {
-        let m = macrocosm_1.macrocosm((_) => ({
+        let m = macrocosm_1.macrocosm((_, d) => ({
             none: _.c,
             halfOne: _.a,
             halfTwo: _.b,
-            letters: _._derive((a, b) => { return a + b; }, _.a, _.b)
+            letters: d((a, b) => { return a + b; }, _.a, _.b)
         }));
+        expect(m.convert({ a: 0 })).toEqual({
+            halfOne: 0,
+        });
+        m.convert({
+            a: "0", b: "1"
+        });
         expect(m.update({
             a: "A"
         })).toEqual({
             halfOne: "A",
+            letters: "A1"
         });
         expect(m.update({
             a: "A", b: "B"
@@ -70,12 +77,12 @@ describe('macrocosm', function () {
         });
     });
     it('should operate the readme example', function () {
-        let planetarium = macrocosm_1.macrocosm((macro) => {
+        let planetarium = macrocosm_1.macrocosm((macro, derive) => {
             return {
                 land: macro.land,
                 size: 'big',
                 shape: "round",
-                temperature: macro._derive((distance, atmosphere) => {
+                temperature: derive((distance, atmosphere) => {
                     return atmosphere / distance;
                 }, macro.distance, macro.atmosphere)
             };
@@ -91,5 +98,19 @@ describe('macrocosm', function () {
             shape: 'round',
             temperature: 0.2
         });
+        let up = planetarium.update({
+            land: "Ice",
+            atmosphere: 5
+        });
+        expect(up).toEqual({
+            land: "Ice",
+            temperature: 0.5
+        });
+    });
+    it('works with es6 destructure', function () {
+        let m = macrocosm_1.macrocosm(({ a, b }) => ({
+            x: a, y: b
+        }));
+        expect(m.convert({ a: 0, b: 1 })).toEqual({ x: 0, y: 1 });
     });
 });
